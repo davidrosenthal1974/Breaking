@@ -73,10 +73,10 @@
   }
   .crossword-cell {
     width: 36px;
-    height: 44px;
+    height: 46px;
     border: 2px solid #94a3b8;
     border-radius: 8px;
-    font-size: 1.35rem;
+    font-size: 1.4rem;
     font-weight: 800;
     text-align: center;
     background: #fff;
@@ -90,10 +90,9 @@
     background: #eef2ff;
   }
   .crossword-cell.hint-revealed {
-    background: #fef08a !important;
+    background-color: #fef08a !important;
     border-color: #ca8a04 !important;
     color: #854d0e !important;
-    animation: popIn 0.3s ease;
   }
 
   .btn-submit {
@@ -124,6 +123,7 @@
     cursor: pointer;
     margin-top: 15px;
     transition: 0.2s;
+    touch-action: manipulation;
   }
   .btn-hint:hover { background: #e2e8f0; }
 
@@ -138,10 +138,6 @@
   .hidden { display: none !important; }
   .win { animation: fadeIn 0.7s ease; }
 
-  @keyframes popIn {
-    from { transform: scale(0.8); }
-    to { transform: scale(1); }
-  }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
@@ -152,21 +148,21 @@
 
 <div class="card">
   <h1>משחק 5: הגדרת היגיון 🧩</h1>
-  <div class="badge">למטיבי לכת</div>
+  <div class="badge">למיטיבי לכת</div>
 
   <div id="game-section">
     <div class="riddle-box">
       "הקוף כאן, אבל איפה שפירא? אוכלת בתל אביב" (3, 6)
     </div>
 
-    <!-- לוח התשבץ: מילה ראשונה (3) ומילה שנייה (6) מימין לשמאל -->
+    <!-- לוח התשבץ -->
     <div class="crossword-container">
-      <div class="word-group" id="word1">
+      <div class="word-group">
         <input type="text" class="crossword-cell" maxlength="1" id="c0">
         <input type="text" class="crossword-cell" maxlength="1" id="c1">
         <input type="text" class="crossword-cell" maxlength="1" id="c2">
       </div>
-      <div class="word-group" id="word2">
+      <div class="word-group">
         <input type="text" class="crossword-cell" maxlength="1" id="c3">
         <input type="text" class="crossword-cell" maxlength="1" id="c4">
         <input type="text" class="crossword-cell" maxlength="1" id="c5">
@@ -176,9 +172,9 @@
       </div>
     </div>
 
-    <button type="button" class="btn-submit" onclick="checkAnswer()">בדקי פתרון</button>
+    <button type="button" class="btn-submit" id="submitBtn">בדקי פתרון</button>
     <br>
-    <button type="button" class="btn-hint" id="hintBtn" onclick="revealHintCell()">💡 חשפי רמז במשבצת</button>
+    <button type="button" class="btn-hint" id="hintBtn">💡 חשפי רמז במשבצת</button>
 
     <div id="feedback" class="feedback"></div>
   </div>
@@ -195,62 +191,77 @@
 </div>
 
 <script>
-  // רצף האותיות: [ק, פ, ה, א, י, ט, ל, י, ה]
   var solution = ["ק", "פ", "ה", "א", "י", "ט", "ל", "י", "ה"];
 
-  // 3 הרמזים לפי המשבצות:
-  // אינדקס 1 = אות שנייה (פ)
-  // אינדקס 3 = אות רביעית (א)
-  // אינדקס 5 = אות שישית (ט)
+  // 3 רמזים לפי הסדר המבוקש:
+  // 1: אות 2 במילה הראשונה (פ)
+  // 3: אות ראשונה במילה השנייה (א)
+  // 5: אות שלישית במילה השנייה (ט)
   var hintSteps = [
-    { index: 1, letter: "פ" },
-    { index: 3, letter: "א" },
-    { index: 5, letter: "ט" }
+    { id: "c1", letter: "פ" },
+    { id: "c3", letter: "א" },
+    { id: "c5", letter: "ט" }
   ];
-  var currentHint = 0;
+  var currentHintIdx = 0;
 
-  var cells = [];
-  for (var i = 0; i < 9; i++) {
-    cells.push(document.getElementById("c" + i));
-  }
+  var cellIds = ["c0", "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"];
 
-  // מעבר אוטומטי למשבצת הבאה בעת הקלדה
-  cells.forEach(function(cell, idx) {
+  cellIds.forEach(function(id, idx) {
+    var cell = document.getElementById(id);
     cell.addEventListener("input", function() {
-      if (cell.value && idx < 8) {
-        cells[idx + 1].focus();
+      if (cell.value && idx < cellIds.length - 1) {
+        document.getElementById(cellIds[idx + 1]).focus();
       }
     });
 
     cell.addEventListener("keydown", function(e) {
       if (e.key === "Backspace" && !cell.value && idx > 0) {
-        cells[idx - 1].focus();
+        document.getElementById(cellIds[idx - 1]).focus();
       } else if (e.key === "Enter") {
         checkAnswer();
       }
     });
   });
 
-  function revealHintCell() {
-    if (currentHint < hintSteps.length) {
-      var h = hintSteps[currentHint];
-      var targetCell = cells[h.index];
-      targetCell.value = h.letter;
-      targetCell.classList.add("hint-revealed");
-      currentHint++;
+  document.getElementById("hintBtn").addEventListener("click", function() {
+    if (currentHintIdx < hintSteps.length) {
+      var item = hintSteps[currentHintIdx];
+      var el = document.getElementById(item.id);
+      el.value = item.letter;
+      el.classList.add("hint-revealed");
+      el.readOnly = true;
+      currentHintIdx++;
 
-      if (currentHint >= hintSteps.length) {
-        var btn = document.getElementById("hintBtn");
-        btn.textContent = "נגמרו הרמזים!";
-        btn.disabled = true;
-        btn.style.opacity = "0.5";
+      if (currentHintIdx >= hintSteps.length) {
+        this.textContent = "נגמרו הרמזים!";
+        this.disabled = true;
+        this.style.opacity = "0.6";
       }
+    }
+  });
+
+  function checkAnswer() {
+    var entered = cellIds.map(function(id) {
+      return document.getElementById(id).value.trim();
+    }).join("");
+
+    var fb = document.getElementById("feedback");
+
+    if (entered.length < 9) {
+      fb.textContent = "מלאי את כל 9 המשבצות!";
+      return;
+    }
+
+    if (entered === solution.join("")) {
+      fb.textContent = "";
+      document.getElementById("game-section").classList.add("hidden");
+      document.getElementById("win-section").classList.remove("hidden");
+    } else {
+      fb.textContent = "עדיין לא נכון... נסי שוב!";
     }
   }
 
-  function checkAnswer() {
-    var userGuess = cells.map(function(c) { return c.value.trim(); }).join("");
-    var fb = document.getElementById("feedback");
-
-    if (userGuess.length < 9) {
-      fb.textContent = "מלאי את כל
+  document.getElementById("submitBtn").addEventListener("click", checkAnswer);
+</script>
+</body>
+</html>
