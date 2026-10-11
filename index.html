@@ -2,11 +2,12 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>משחק 5: הגדרת היגיון</title>
 <style>
+  * { box-sizing: border-box; }
   body {
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: #f8fafc;
     color: #1e293b;
     display: flex;
@@ -21,56 +22,80 @@
   }
   .card {
     background: white;
-    padding: 32px 24px;
-    border-radius: 22px;
+    padding: 32px 20px;
+    border-radius: 24px;
     box-shadow: 0 12px 35px rgba(0,0,0,0.08);
-    max-width: 440px;
+    max-width: 450px;
     width: 100%;
-    box-sizing: border-box;
     border: 1px solid #e2e8f0;
   }
   h1 {
     color: #0f172a;
-    font-size: 1.6rem;
+    font-size: 1.55rem;
     margin-top: 0;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .badge {
     display: inline-block;
     background: #e0e7ff;
     color: #4338ca;
-    padding: 5px 12px;
+    padding: 4px 12px;
     border-radius: 20px;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
   .riddle-box {
     background: #f1f5f9;
     border-right: 4px solid #6366f1;
-    padding: 18px;
+    padding: 16px;
     border-radius: 12px;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 700;
     line-height: 1.6;
     color: #1e293b;
-    margin-bottom: 24px;
+    margin-bottom: 25px;
     text-align: right;
   }
-  input[type="text"] {
-    width: 90%;
-    padding: 14px;
-    font-size: 1.2rem;
-    border: 2px solid #cbd5e1;
-    border-radius: 12px;
+
+  /* לוח תשבץ */
+  .crossword-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+    direction: rtl;
+  }
+  .word-group {
+    display: flex;
+    gap: 4px;
+  }
+  .crossword-cell {
+    width: 36px;
+    height: 44px;
+    border: 2px solid #94a3b8;
+    border-radius: 8px;
+    font-size: 1.35rem;
+    font-weight: 800;
     text-align: center;
+    background: #fff;
+    color: #0f172a;
     outline: none;
-    box-sizing: border-box;
-    transition: 0.2s;
+    caret-color: #6366f1;
+    transition: all 0.2s ease;
   }
-  input[type="text"]:focus {
+  .crossword-cell:focus {
     border-color: #6366f1;
+    background: #eef2ff;
   }
+  .crossword-cell.hint-revealed {
+    background: #fef08a !important;
+    border-color: #ca8a04 !important;
+    color: #854d0e !important;
+    animation: popIn 0.3s ease;
+  }
+
   .btn-submit {
     background: #6366f1;
     color: white;
@@ -80,7 +105,6 @@
     font-weight: bold;
     border-radius: 12px;
     cursor: pointer;
-    margin-top: 14px;
     width: 90%;
     transition: 0.2s;
     touch-action: manipulation;
@@ -89,39 +113,35 @@
     background: #4f46e5;
     transform: scale(0.98);
   }
+  .btn-hint {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: 0.2s;
+  }
+  .btn-hint:hover { background: #e2e8f0; }
+
   .feedback {
     margin-top: 14px;
-    font-size: 0.98rem;
+    font-size: 0.95rem;
     font-weight: bold;
     min-height: 24px;
     color: #ef4444;
   }
-  .clue-btn {
-    background: none;
-    border: none;
-    color: #6366f1;
-    text-decoration: underline;
-    font-size: 0.92rem;
-    cursor: pointer;
-    margin-top: 18px;
-    font-weight: 600;
-  }
-  .clues-container {
-    margin-top: 16px;
-    text-align: right;
-    background: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    padding: 12px 16px;
-    border-radius: 10px;
-    display: none;
-  }
-  .clue-item {
-    font-size: 0.95rem;
-    color: #475569;
-    margin: 4px 0;
-  }
+
   .hidden { display: none !important; }
   .win { animation: fadeIn 0.7s ease; }
+
+  @keyframes popIn {
+    from { transform: scale(0.8); }
+    to { transform: scale(1); }
+  }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
@@ -139,14 +159,28 @@
       "הקוף כאן, אבל איפה שפירא? אוכלת בתל אביב" (3, 6)
     </div>
 
-    <input type="text" id="answerInput" placeholder="הקלידי את התשובה...">
-    <br>
-    <button type="button" class="btn-submit" id="submitBtn">בדקי פתרון</button>
-    <div id="feedback" class="feedback"></div>
+    <!-- לוח התשבץ: מילה ראשונה (3) ומילה שנייה (6) מימין לשמאל -->
+    <div class="crossword-container">
+      <div class="word-group" id="word1">
+        <input type="text" class="crossword-cell" maxlength="1" id="c0">
+        <input type="text" class="crossword-cell" maxlength="1" id="c1">
+        <input type="text" class="crossword-cell" maxlength="1" id="c2">
+      </div>
+      <div class="word-group" id="word2">
+        <input type="text" class="crossword-cell" maxlength="1" id="c3">
+        <input type="text" class="crossword-cell" maxlength="1" id="c4">
+        <input type="text" class="crossword-cell" maxlength="1" id="c5">
+        <input type="text" class="crossword-cell" maxlength="1" id="c6">
+        <input type="text" class="crossword-cell" maxlength="1" id="c7">
+        <input type="text" class="crossword-cell" maxlength="1" id="c8">
+      </div>
+    </div>
 
-    <button type="button" class="clue-btn" id="clueToggleBtn" onclick="revealNextClue()">צריכה רמז אותיות?</button>
-    
-    <div id="cluesContainer" class="clues-container"></div>
+    <button type="button" class="btn-submit" onclick="checkAnswer()">בדקי פתרון</button>
+    <br>
+    <button type="button" class="btn-hint" id="hintBtn" onclick="revealHintCell()">💡 חשפי רמז במשבצת</button>
+
+    <div id="feedback" class="feedback"></div>
   </div>
 
   <div id="win-section" class="hidden win">
@@ -161,60 +195,62 @@
 </div>
 
 <script>
-  var clues = [
-    "רמז ראשון: אות שנייה היא פ'",
-    "רמז שני: אות ראשונה במילה השנייה היא א'",
-    "רמז שלישי: אות שלישית במילה השנייה היא ט'"
+  // רצף האותיות: [ק, פ, ה, א, י, ט, ל, י, ה]
+  var solution = ["ק", "פ", "ה", "א", "י", "ט", "ל", "י", "ה"];
+
+  // 3 הרמזים לפי המשבצות:
+  // אינדקס 1 = אות שנייה (פ)
+  // אינדקס 3 = אות רביעית (א)
+  // אינדקס 5 = אות שישית (ט)
+  var hintSteps = [
+    { index: 1, letter: "פ" },
+    { index: 3, letter: "א" },
+    { index: 5, letter: "ט" }
   ];
-  var currentClueIdx = 0;
+  var currentHint = 0;
 
-  function revealNextClue() {
-    var container = document.getElementById("cluesContainer");
-    container.style.display = "block";
+  var cells = [];
+  for (var i = 0; i < 9; i++) {
+    cells.push(document.getElementById("c" + i));
+  }
 
-    if (currentClueIdx < clues.length) {
-      var p = document.createElement("div");
-      p.className = "clue-item";
-      p.innerHTML = "💡 " + clues[currentClueIdx];
-      container.appendChild(p);
-      currentClueIdx++;
-    }
+  // מעבר אוטומטי למשבצת הבאה בעת הקלדה
+  cells.forEach(function(cell, idx) {
+    cell.addEventListener("input", function() {
+      if (cell.value && idx < 8) {
+        cells[idx + 1].focus();
+      }
+    });
 
-    if (currentClueIdx >= clues.length) {
-      document.getElementById("clueToggleBtn").style.display = "none";
+    cell.addEventListener("keydown", function(e) {
+      if (e.key === "Backspace" && !cell.value && idx > 0) {
+        cells[idx - 1].focus();
+      } else if (e.key === "Enter") {
+        checkAnswer();
+      }
+    });
+  });
+
+  function revealHintCell() {
+    if (currentHint < hintSteps.length) {
+      var h = hintSteps[currentHint];
+      var targetCell = cells[h.index];
+      targetCell.value = h.letter;
+      targetCell.classList.add("hint-revealed");
+      currentHint++;
+
+      if (currentHint >= hintSteps.length) {
+        var btn = document.getElementById("hintBtn");
+        btn.textContent = "נגמרו הרמזים!";
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      }
     }
   }
 
   function checkAnswer() {
-    var input = document.getElementById('answerInput');
-    var rawText = input.value.trim().toLowerCase();
-    var fb = document.getElementById('feedback');
+    var userGuess = cells.map(function(c) { return c.value.trim(); }).join("");
+    var fb = document.getElementById("feedback");
 
-    if (!rawText) {
-      fb.textContent = "קודם תקלידי משהו!";
-      return;
-    }
-
-    var clean = rawText.replace(/[\"\'\.\,\-]/g, '');
-
-    if (clean === "קפה איטליה" || clean === "קפהאיטליה") {
-      fb.textContent = "";
-      document.getElementById('game-section').classList.add('hidden');
-      document.getElementById('win-section').classList.remove('hidden');
-    } else {
-      fb.textContent = "לא נכון... נסי לחשוב על חלקי ההגדרה!";
-      input.value = "";
-      input.focus();
-    }
-  }
-
-  document.getElementById('submitBtn').addEventListener('click', checkAnswer);
-
-  document.getElementById('answerInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      checkAnswer();
-    }
-  });
-</script>
-</body>
-</html>
+    if (userGuess.length < 9) {
+      fb.textContent = "מלאי את כל
