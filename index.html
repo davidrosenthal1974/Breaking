@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>משחק 5: הגדרת היגיון</title>
+<style>
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  .card {
+    background: white;
+    padding: 32px 24px;
+    border-radius: 22px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+    max-width: 440px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #e2e8f0;
+  }
+  h1 {
+    color: #0f172a;
+    font-size: 1.6rem;
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+  .badge {
+    display: inline-block;
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .riddle-box {
+    background: #f1f5f9;
+    border-right: 4px solid #6366f1;
+    padding: 18px;
+    border-radius: 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+    color: #1e293b;
+    margin-bottom: 24px;
+    text-align: right;
+  }
+  input[type="text"] {
+    width: 90%;
+    padding: 14px;
+    font-size: 1.2rem;
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    text-align: center;
+    outline: none;
+    box-sizing: border-box;
+    transition: 0.2s;
+  }
+  input[type="text"]:focus {
+    border-color: #6366f1;
+  }
+  .btn-submit {
+    background: #6366f1;
+    color: white;
+    border: none;
+    padding: 14px 34px;
+    font-size: 1.15rem;
+    font-weight: bold;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-top: 14px;
+    width: 90%;
+    transition: 0.2s;
+    touch-action: manipulation;
+  }
+  .btn-submit:active {
+    background: #4f46e5;
+    transform: scale(0.98);
+  }
+  .feedback {
+    margin-top: 14px;
+    font-size: 0.98rem;
+    font-weight: bold;
+    min-height: 24px;
+    color: #ef4444;
+  }
+  .clue-btn {
+    background: none;
+    border: none;
+    color: #6366f1;
+    text-decoration: underline;
+    font-size: 0.92rem;
+    cursor: pointer;
+    margin-top: 18px;
+    font-weight: 600;
+  }
+  .clues-container {
+    margin-top: 16px;
+    text-align: right;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    padding: 12px 16px;
+    border-radius: 10px;
+    display: none;
+  }
+  .clue-item {
+    font-size: 0.95rem;
+    color: #475569;
+    margin: 4px 0;
+  }
+  .hidden { display: none !important; }
+  .win { animation: fadeIn 0.7s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>משחק 5: הגדרת היגיון 🧩</h1>
+  <div class="badge">למטיבי לכת</div>
+
+  <div id="game-section">
+    <div class="riddle-box">
+      "הקוף כאן, אבל איפה שפירא? אוכלת בתל אביב" (3, 6)
+    </div>
+
+    <input type="text" id="answerInput" placeholder="הקלידי את התשובה...">
+    <br>
+    <button type="button" class="btn-submit" id="submitBtn">בדקי פתרון</button>
+    <div id="feedback" class="feedback"></div>
+
+    <button type="button" class="clue-btn" id="clueToggleBtn" onclick="revealNextClue()">צריכה רמז אותיות?</button>
+    
+    <div id="cluesContainer" class="clues-container"></div>
+  </div>
+
+  <div id="win-section" class="hidden win">
+    <div style="font-size: 3.5rem; margin: 10px 0;">☕ 🇮🇹 🍝</div>
+    <h2 style="color: #6366f1; font-size: 1.85rem; margin: 10px 0;">מושלם! פיצחת! 🎉</h2>
+    <p style="font-size: 1.2rem; line-height: 1.7; color: #334155;">
+      <strong>קפה איטליה!</strong><br><br>
+      פירוק היגיון פשוט מבריק! 👏<br><br>
+      גשי מיד ל<strong>דודאווי</strong> ודרשי לקבל את המתנה החמישית שלך!
+    </p>
+  </div>
+</div>
+
+<script>
+  var clues = [
+    "רמז ראשון: אות שנייה היא פ'",
+    "רמז שני: אות ראשונה במילה השנייה היא א'",
+    "רמז שלישי: אות שלישית במילה השנייה היא ט'"
+  ];
+  var currentClueIdx = 0;
+
+  function revealNextClue() {
+    var container = document.getElementById("cluesContainer");
+    container.style.display = "block";
+
+    if (currentClueIdx < clues.length) {
+      var p = document.createElement("div");
+      p.className = "clue-item";
+      p.innerHTML = "💡 " + clues[currentClueIdx];
+      container.appendChild(p);
+      currentClueIdx++;
+    }
+
+    if (currentClueIdx >= clues.length) {
+      document.getElementById("clueToggleBtn").style.display = "none";
+    }
+  }
+
+  function checkAnswer() {
+    var input = document.getElementById('answerInput');
+    var rawText = input.value.trim().toLowerCase();
+    var fb = document.getElementById('feedback');
+
+    if (!rawText) {
+      fb.textContent = "קודם תקלידי משהו!";
+      return;
+    }
+
+    var clean = rawText.replace(/[\"\'\.\,\-]/g, '');
+
+    if (clean === "קפה איטליה" || clean === "קפהאיטליה") {
+      fb.textContent = "";
+      document.getElementById('game-section').classList.add('hidden');
+      document.getElementById('win-section').classList.remove('hidden');
+    } else {
+      fb.textContent = "לא נכון... נסי לחשוב על חלקי ההגדרה!";
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+
+  document.getElementById('answerInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      checkAnswer();
+    }
+  });
+</script>
+</body>
+</html>
